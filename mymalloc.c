@@ -6,14 +6,60 @@
 #define MEMLENGTH 4096
 
 static union {
-char bytes[MEMLENGTH];
-double not_used;
+    char bytes[MEMLENGTH];
+    double not_used;
 } heap;
+
+static int initialized = 0;
+
+void setChunkSize(void *chunkStart, int chunkSize){
+    *(int*)chunkStart = chunkSize;
+}
+
+int getChunkSize(void *chunkStart){
+    return *(int*)chunkStart;
+}
+
+void setAllocated(void *chunkStart, int allocated){
+    *(int*)(chunkStart + 4) = allocated;
+}
+
+
+bool isAllocated(void *chunkStart){
+    return *(int*)(chunkStart + 4);
+}
+
+void leakDetector(){
+    if(getChunkSize(heap.bytes) != MEMLENGTH || isAllocated(heap.bytes)){
+        int chunkCounter = 0;
+        int byteCounter = 0;
+        void *pointer = heap.bytes;
+
+        while(pointer < heap.bytes + MEMLENGTH){
+            if(isAllocated(pointer)){
+                chunkCounter++;
+                byteCounter += getChunkSize(pointer);
+            }
+            pointer = pointer + 8 + getChunkSize(pointer);
+        }
+
+        fprintf(stderr, "mymalloc: %d bytes leaked in %d objects.", byteCounter, chunkCounter);
+    }
+    
+}
+
+void initializeHeap(){
+    setChunkSize(heap.bytes, MEMLENGTH);
+    setAllocated(heap.bytes, 0);
+    initialized = 1;
+
+    atexit(leakDetector);
+}
 
 void *mymalloc(size_t size, char *file, int line){
     if(size == 0)
     {
-        //add error
+        // add error?
         return NULL;
     }
 
@@ -27,16 +73,12 @@ void *mymalloc(size_t size, char *file, int line){
         int chunkSize = getChunkSize(current);
         bool allocated = isAllocated(current);
 
-        if(chunkSize == 0 && !allocated){
-            setChunkSize(current, size + 8);
-            setAsAllocated(current);
-            result = current + 8;
-            setChunkSize(current + 8 + size, memoryEnd - (current + 8 + size)); //next chunk size
-            return result;
-        }
+        if(initialized == 0)
+            initializeHeap();
+
         if(chunkSize >= (8 + size) && !allocated){
             setChunkSize(current, size + 8);
-            setAsAllocated(current);
+            setAllocated(current, 1);
             result = current + 8;
             if(chunkSize > (8 + size))
                 setChunkSize(current + 8 + size, chunkSize - (8 + size)); 
@@ -52,21 +94,8 @@ void *mymalloc(size_t size, char *file, int line){
 
 }
 
-void setChunkSize(void *chunkStart, int chunkSize){
-    *(int*)chunkStart = chunkSize;
-}
 
-int getChunkSize(void *chunkStart){
-    return *(int*)chunkStart;
-}
 
-void setAsAllocated(void *chunkStart){
-    *(int*)(chunkStart + 4) = 1;
-}
-
-bool isAllocated(void *chunkStart){
-    return *(int*)(chunkStart + 4);
-}
 
 
 
