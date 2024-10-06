@@ -31,7 +31,7 @@ bool isAllocated(int chunkStart){
 }
 
 void leakDetector(){
-    if(getChunkSize(heap.bytes) != MEMLENGTH || isAllocated(heap.bytes)){
+    if(getChunkSize(0) != MEMLENGTH || isAllocated(0)){
         int chunkCounter = 0;
         int byteCounter = 0;
         int pointer = 0;
@@ -135,17 +135,17 @@ void myfree(void *ptr, char *file, int line) {
         return;
     }
     while (current <= MEMLENGTH){
-        if (isAdjacentAndFree(current, ptr)) {
-            mergeBlocks(current,ptr);
-            if (isAllocated(nextBlock(ptr))) {
-                mergeBlocks(current, nextBlock(ptr));
+        if (isAdjacentAndFree(current, toBeFreed)) {
+            mergeBlocks(current, toBeFreed);
+            if (isAllocated(nextBlock(toBeFreed))) {
+                mergeBlocks(current, nextBlock(toBeFreed));
             }
             return;
         }
 
-        if (current == ptr) {
-            if (isAllocated(nextBlock(ptr))) {
-                mergeBlocks(ptr, nextBlock(ptr));
+        if (current == toBeFreed) {
+            if (isAllocated(nextBlock(toBeFreed))) {
+                mergeBlocks(toBeFreed, nextBlock(toBeFreed));
             }
             return;
         }
