@@ -1,2 +1,3 @@
 memtest.o
 mymalloc.o
+memtest
