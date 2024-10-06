@@ -50,8 +50,8 @@ void leakDetector(){
 }
 
 void initializeHeap(){
-    setChunkSize(heap.bytes, MEMLENGTH);
-    setAllocated(heap.bytes, 0);
+    setChunkSize(0, MEMLENGTH);
+    setAllocated(0, 0);
     initialized = 1;
 
     atexit(leakDetector);
