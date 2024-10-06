@@ -12,30 +12,31 @@ static union {
 
 static int initialized = 0;
 
-void setChunkSize(void *chunkStart, int chunkSize){
-    *(int*)chunkStart = chunkSize;
+void setChunkSize(int chunkStart, int chunkSize){
+    *(int*)(&heap.bytes[chunkStart]) = chunkSize;
 }
 
-int getChunkSize(void *chunkStart){
-    return *(int*)chunkStart;
+int getChunkSize(int chunkStart){
+    // printf("chunk size: %d \n", *(int*)chunkStart); 
+    return *(int*)(&heap.bytes[chunkStart]);
 }
 
-void setAllocated(void *chunkStart, int allocated){
-    *(int*)(chunkStart + 4) = allocated;
+void setAllocated(int chunkStart, int allocated){
+    *(int*)(&heap.bytes[chunkStart + 4]) = allocated;
 }
 
 
-bool isAllocated(void *chunkStart){
-    return *(int*)(chunkStart + 4);
+bool isAllocated(int chunkStart){
+    return *(int*)(&heap.bytes[chunkStart + 4]);
 }
 
 void leakDetector(){
     if(getChunkSize(heap.bytes) != MEMLENGTH || isAllocated(heap.bytes)){
         int chunkCounter = 0;
         int byteCounter = 0;
-        void *pointer = heap.bytes;
+        int pointer = 0;
 
-        while(pointer < heap.bytes + MEMLENGTH){
+        while(pointer < MEMLENGTH){
             if(isAllocated(pointer)){
                 chunkCounter++;
                 byteCounter += getChunkSize(pointer);
@@ -57,6 +58,7 @@ void initializeHeap(){
 }
 
 void *mymalloc(size_t size, char *file, int line){
+    // printf("allocating size %ld ", size);
     if(size == 0)
     {
         // add error?
@@ -65,9 +67,9 @@ void *mymalloc(size_t size, char *file, int line){
 
     size = size + (8 - (size % 8));
 
-    void *result = NULL;
-    void *current = heap.bytes;
-    void *memoryEnd = heap.bytes + MEMLENGTH;
+    int result = 0;
+    int current = 0; //start at 0th index of the heap
+    int memoryEnd = MEMLENGTH;
 
     while(current < memoryEnd){
         int chunkSize = getChunkSize(current);
@@ -82,7 +84,7 @@ void *mymalloc(size_t size, char *file, int line){
             result = current + 8;
             if(chunkSize > (8 + size))
                 setChunkSize(current + 8 + size, chunkSize - (8 + size)); 
-            return result;
+            return ((void*) &heap.bytes[result]);
         }
         if(allocated){
             current = current + (8 + size);
@@ -94,8 +96,61 @@ void *mymalloc(size_t size, char *file, int line){
 
 }
 
+bool isAdjacentAndFree(int current, int target) {
+    if (current + getChunkSize(current) + 8 == target && isAllocated(current)) {
+        return true;
+    }
+    return false;
+}
 
+void mergeBlocks(int first, int second) {
+    setChunkSize(first, getChunkSize(first) + getChunkSize(second) + 8); //merges the chunk size
+    setAllocated(first, 0); //deallocates
+}
 
+int nextBlock(int ptr) {
+    int next = ptr + 8 + getChunkSize(ptr);
+    return next;
+}
 
+int findPtr(void* ptr){
+    int result = 0;
+    while (result <= MEMLENGTH) {
+        if (&heap.bytes[result + 8] == (char*) ptr){
+            return result;
+        }
+        else {
+            result += getChunkSize(result) + 8;
+        }
+    }
+    return -1;
+}
 
+void myfree(void *ptr, char *file, int line) {
+    printf("freeing");
+    int current = 0;
+    int toBeFreed = findPtr(ptr); //set toBeFreed to the metadata start
+    if (toBeFreed == -1) {
+        fprintf(stderr, "free: Unable to free bytes due to invalid address(%s.c:%d)", file, line);
+        return;
+    }
+    while (current <= MEMLENGTH){
+        if (isAdjacentAndFree(current, ptr)) {
+            mergeBlocks(current,ptr);
+            if (isAllocated(nextBlock(ptr))) {
+                mergeBlocks(current, nextBlock(ptr));
+            }
+            return;
+        }
 
+        if (current == ptr) {
+            if (isAllocated(nextBlock(ptr))) {
+                mergeBlocks(ptr, nextBlock(ptr));
+            }
+            return;
+        }
+        current = nextBlock(current);
+    }
+
+    fprintf(stderr, "free: Unable to free bytes (%s.c:%d)", file, line);
+}

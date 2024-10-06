@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 
 // Compile with -DREALMALLOC to use the real malloc() instead of mymalloc()
@@ -26,6 +27,7 @@ int main(int argc, char **argv)
 	
 	// fill memory with objects
 	for (i = 0; i < OBJECTS; i++) {
+		printf("allocating int: %d", i);
 		obj[i] = malloc(OBJSIZE);
 		if (obj[i] == NULL) {
 		    printf("Unable to allocate object %d\n", i);
@@ -54,7 +56,33 @@ int main(int argc, char **argv)
 		free(obj[i]);
 	    }
 	}
+
+	//allocate and deallocate things randomly
+	int* testArray[100];
+	for (i = 0; i < 100; i++) {
+		testArray[i] = malloc(rand() % 24 + 1);
+		if (rand() % 10 && i > 2) {
+			int random = rand() % i;
+			if (testArray[random]) {
+				free(testArray[random]);
+				testArray[random] = NULL;
+			}
+		}
+	}
+
+	//free the rest of the elements
+	if (!LEAK) {
+		for (i = 0; i < 100; i++) {
+			if (testArray[i]) {
+				free(testArray[i]);
+			}
+		}
+	}
 	
+	//memory should be empty, so I should  be able to allocate 1 very big object
+	char* big = malloc(MEMSIZE - HEADERSIZE);
+	free(big);
+
 	printf("%d incorrect bytes\n", errors);
 	
 	return EXIT_SUCCESS;
