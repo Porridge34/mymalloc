@@ -60,6 +60,7 @@ int method1() {
 
 int method2() {
 	int errors = 0;
+	printf("dfsa");
 	//allocate and deallocate things randomly
 	int* testArray[100];
 	for (int i = 0; i < 100; i++) {
@@ -91,6 +92,9 @@ int main(int argc, char **argv)
 {
 	int errors = method1();
 	errors += method2();
+	for (int i = 0; i < 20; i++) {
+		errors += method2();
+	}
 	
 	//memory should be empty, so I should  be able to allocate 1 very big object
 	char* big = malloc(MEMSIZE - HEADERSIZE);
