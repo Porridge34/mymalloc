@@ -101,7 +101,7 @@ void *mymalloc(size_t size, char *file, int line){
         current = current + chunkSize;
     }
 
-    fprintf(stderr, "malloc: Unable to allocate %zu bytes (%s.c:%d)", size, file, line);
+    fprintf(stderr, "malloc: Unable to allocate %zu bytes (%s.c:%d)\n", size, file, line);
     return NULL;
 
 }
@@ -131,21 +131,21 @@ int nextBlock(int ptr) {
 }
 
 int findPtr(void* ptr){
-    int result = 0;
-    while (result < MEMLENGTH + 8) {
-        if (&heap.bytes[result + 8] == (char*) ptr){
-            return result;
-        }
-        else {
-            result += getChunkSize(result);
-            //printf("address found: %p to be freed: %p", ((void*) &heap.bytes[result]), ptr );
-        }
-    }
-    return -1;
-    // int ptrVal = (char*)ptr - heap.bytes;
-    // if(ptrVal % 8 == 0)
-    //     return ptrVal - 8;
+    // int result = 0;
+    // while (result < MEMLENGTH + 8) {
+    //     if (&heap.bytes[result + 8] == (char*) ptr){
+    //         return result;
+    //     }
+    //     else {
+    //         result += getChunkSize(result);
+    //         //printf("address found: %p to be freed: %p", ((void*) &heap.bytes[result]), ptr );
+    //     }
+    // }
     // return -1;
+    int ptrVal = (char*)ptr - heap.bytes;
+    if(ptrVal % 8 == 0)
+        return ptrVal - 8;
+    return -1;
 }
 
 void myfree(void *ptr, char *file, int line) {
@@ -153,7 +153,7 @@ void myfree(void *ptr, char *file, int line) {
     int toBeFreed = findPtr(ptr); //set toBeFreed to the metadata start
     //printf("to be freed: %d\n", toBeFreed);
     if (toBeFreed == -1) {
-        fprintf(stderr, "free: Unable to free bytes due to invalid address(%s.c:%d)", file, line);
+        fprintf(stderr, "free: Unable to free bytes due to invalid address(%s.c:%d)\n", file, line);
         return;
     }
     while (current < MEMLENGTH){
@@ -175,5 +175,5 @@ void myfree(void *ptr, char *file, int line) {
         current = nextBlock(current);
     }
 
-    fprintf(stderr, "free: Unable to free bytes (%s.c:%d)", file, line);
+    fprintf(stderr, "free: Unable to free bytes (%s.c:%d)\n", file, line);
 }

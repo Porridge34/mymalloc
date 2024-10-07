@@ -26,7 +26,7 @@ int method1() {
 	
 	// fill memory with objects
 	for (i = 0; i < OBJECTS; i++) {
-		printf("allocating int: %d", i);
+		// printf("allocating int: %d", i);
 		obj[i] = malloc(OBJSIZE);
 		if (obj[i] == NULL) {
 		    printf("Unable to allocate object %d\n", i);
@@ -95,6 +95,15 @@ int main(int argc, char **argv)
 	//memory should be empty, so I should  be able to allocate 1 very big object
 	char* big = malloc(MEMSIZE - HEADERSIZE);
 	free(big);
+
+	//should cause errors
+	char* tooBig = malloc(3345435543);
+	if (tooBig != NULL) {
+		errors++;
+	}
+
+	char* none;
+	free(none);
 
 	printf("%d incorrect bytes\n", errors);
 	
