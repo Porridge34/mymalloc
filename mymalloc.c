@@ -55,7 +55,6 @@ void leakDetector(){
 
         fprintf(stderr, "mymalloc: %d bytes leaked in %d objects.", byteCounter, chunkCounter);
     }
-    
 }
 
 void initializeHeap(){
@@ -143,6 +142,10 @@ int findPtr(void* ptr){
 }
 
 void myfree(void *ptr, char *file, int line) {
+    if(!ptr) {
+        fprintf(stderr, "free: Inappropriate pointer (null) (%s.c:%d)\n", file, line);
+        return;
+    }
     int current = 0;
     int toBeFreed = findPtr(ptr); //set toBeFreed to the metadata start
     if (toBeFreed == -1) {
