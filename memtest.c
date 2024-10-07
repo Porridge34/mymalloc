@@ -60,7 +60,6 @@ int method1() {
 
 int method2() {
 	int errors = 0;
-	printf("dfsa");
 	//allocate and deallocate things randomly
 	int* testArray[100];
 	for (int i = 0; i < 100; i++) {
