@@ -20,8 +20,7 @@
 #define OBJECTS 64
 #define OBJSIZE (MEMSIZE / OBJECTS - HEADERSIZE)
 
-int main(int argc, char **argv)
-{
+int method1() {
 	char *obj[OBJECTS];
 	int i, j, errors = 0;
 	
@@ -56,11 +55,18 @@ int main(int argc, char **argv)
 		free(obj[i]);
 	    }
 	}
+	return errors;
+}
 
+int method2() {
+	int errors = 0;
 	//allocate and deallocate things randomly
 	int* testArray[100];
-	for (i = 0; i < 100; i++) {
+	for (int i = 0; i < 100; i++) {
 		testArray[i] = malloc(rand() % 24 + 1);
+		if (!testArray[i]) {
+			errors++;
+		}
 		if (rand() % 10 && i > 2) {
 			int random = rand() % i;
 			if (testArray[random]) {
@@ -72,12 +78,19 @@ int main(int argc, char **argv)
 
 	//free the rest of the elements
 	if (!LEAK) {
-		for (i = 0; i < 100; i++) {
+		for (int i = 0; i < 100; i++) {
 			if (testArray[i]) {
 				free(testArray[i]);
 			}
 		}
 	}
+	return errors;
+}
+
+int main(int argc, char **argv)
+{
+	int errors = method1();
+	errors += method2();
 	
 	//memory should be empty, so I should  be able to allocate 1 very big object
 	char* big = malloc(MEMSIZE - HEADERSIZE);

@@ -106,6 +106,12 @@ void *mymalloc(size_t size, char *file, int line){
 
 }
 
+void zeroed(int start, int end) {
+    for (int i = start; i < end; i++) {
+        heap.bytes[i] = 0;
+    }
+}
+
 bool isAdjacentAndFree(int current, int target) {
     if (current + getChunkSize(current) == target && !isAllocated(current)) {
         return true;
@@ -115,6 +121,7 @@ bool isAdjacentAndFree(int current, int target) {
 
 void mergeBlocks(int first, int second) {
     setChunkSize(first, getChunkSize(first) + getChunkSize(second)); //merges the chunk size
+    zeroed(first + 8, second);
     setAllocated(first, 0); //deallocates
 }
 
