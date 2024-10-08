@@ -91,9 +91,15 @@ int main(int argc, char **argv)
 {
 	int errors = method1();
 	errors += method2();
+	
 	for (int i = 0; i < 20; i++) {
 		errors += method2();
 	}
+
+	char* thing1 = malloc(34);
+	char* doesntfit = malloc (4096);
+
+	free(thing1);
 	
 	//memory should be empty, so I should  be able to allocate 1 very big object
 	char* big = malloc(MEMSIZE - HEADERSIZE);
@@ -107,6 +113,17 @@ int main(int argc, char **argv)
 
 	char* none;
 	free(none);
+
+	char* stupid = malloc(0);
+
+	char* badFree = malloc(32);
+	free(badFree + 1);
+	free(badFree);
+
+	void* odd = (void *)0x28ff43;
+	free(odd);
+
+	free(badFree); //double f ree
 
 	printf("%d incorrect bytes\n", errors);
 	
