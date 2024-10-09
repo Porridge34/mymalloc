@@ -47,13 +47,13 @@ void leakDetector(){
                 chunkCounter++;
                 byteCounter += getChunkSize(pointer);
             }
-            pointer = pointer + getChunkSize(pointer);
-            if (pointer != MEMLENGTH && getChunkSize(pointer) == 0) {
+            pointer = nextBlock(pointer);
+            if(pointer != MEMLENGTH && getChunkSize(pointer) == 0){
                 break;
             }
         }
 
-        fprintf(stderr, "mymalloc: %d bytes leaked in %d objects.", byteCounter, chunkCounter);
+        fprintf(stderr, "mymalloc: %d bytes leaked in %d objects.\n", byteCounter, chunkCounter);
     }
 }
 
@@ -68,14 +68,14 @@ void initializeHeap(){
 void *mymalloc(size_t size, char *file, int line){
     if(size <= 0)
     {
-        fprintf(stderr, "mymalloc: Cannot allocate 0 or negative bytes.");
+        fprintf(stderr, "mymalloc: Cannot allocate 0 or negative bytes (%s.c:%d)\n", file, line);
         return NULL;
     }
     if (size % 8 != 0) { //rounding for 8-byte alignment
         size = size + (8 - (size % 8));
     }
 
-    int result = 0;
+    int result = 0; //return pointer
     int current = 0; //start at 0th index of the heap
     int memoryEnd = MEMLENGTH;
 
@@ -92,15 +92,15 @@ void *mymalloc(size_t size, char *file, int line){
             else
                 setChunkSize(current, size + 8);
             setAllocated(current, 1);
-            result = current + 8;
+            result = current + 8;  //return pointer
             if(originalChunkSize > (getChunkSize(current)))
-                setChunkSize(nextBlock(current), originalChunkSize - (8 + size)); 
+                setChunkSize(nextBlock(current), originalChunkSize - (8 + size)); //set chunksize of next chunk
             return ((void*) &heap.bytes[result]);
         }
         current = current + originalChunkSize;
     }
 
-    fprintf(stderr, "malloc: Unable to allocate %zu bytes (%s.c:%d)\n", size, file, line);
+    fprintf(stderr, "mymalloc: Unable to allocate %zu bytes (%s.c:%d)\n", size, file, line);
     return NULL;
 
 }
@@ -124,7 +124,7 @@ void mergeBlocks(int first, int second) {
     setAllocated(first, 0); //deallocates
 }
 
-int findPtr(void* ptr){
+int findPtr(void* ptr){ // find index of ptr in heap array
     int result = 0;
     while (result < MEMLENGTH - 8) {
         if (&heap.bytes[result + 8] == (char*) ptr){
@@ -134,11 +134,8 @@ int findPtr(void* ptr){
             result += getChunkSize(result);
         }
     }
-    if(result % 8 != 0)
-        return -1;
-    if(result < 0 || result >= MEMLENGTH)
-        return -2;
-    return -3;
+
+    return -1;
 }
 
 void myfree(void *ptr, char *file, int line) {
@@ -149,15 +146,7 @@ void myfree(void *ptr, char *file, int line) {
     int current = 0;
     int toBeFreed = findPtr(ptr); //set toBeFreed to the metadata start
     if (toBeFreed == -1) {
-        fprintf(stderr, "free: Inappropriate pointer (does not follow 8-byte alignment) (%s.c:%d)\n", file, line);
-        return;
-    }
-    if (toBeFreed == -2) {
-        fprintf(stderr, "free: Inappropriate pointer (not within heap) (%s.c:%d)\n", file, line);
-        return;
-    }
-    if (toBeFreed == -3) {
-        fprintf(stderr, "free: Inappropriate pointer (is not the beginning of an allocated chunk) (%s.c:%d)\n", file, line);
+        fprintf(stderr, "free: Inappropriate pointer (%s.c:%d)\n", file, line);
         return;
     }
 

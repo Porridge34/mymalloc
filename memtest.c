@@ -26,7 +26,6 @@ int method1() {
 	
 	// fill memory with objects
 	for (i = 0; i < OBJECTS; i++) {
-		// printf("allocating int: %d", i);
 		obj[i] = malloc(OBJSIZE);
 		if (obj[i] == NULL) {
 		    printf("Unable to allocate object %d\n", i);
@@ -96,11 +95,22 @@ int main(int argc, char **argv)
 		errors += method2();
 	}
 
-	char* thing1 = malloc(34);
-	char* doesntfit = malloc (4096);
 
-	free(thing1);
+	// checking if merge works
+	char* object1 = malloc((MEMSIZE / 4) - HEADERSIZE);
+	char* object2 = malloc((MEMSIZE / 4) - HEADERSIZE);
+	char* object3 = malloc((MEMSIZE / 4) - HEADERSIZE);
+	char* object4 = malloc((MEMSIZE / 4) - HEADERSIZE);
+	free(object2);
+	free(object3);
+	char* biggerobject = malloc((MEMSIZE / 2) - HEADERSIZE);
+	if(biggerobject == NULL)
+		errors++;
 	
+	free(object1);
+	free(biggerobject);
+	free(object4);
+
 	//memory should be empty, so I should  be able to allocate 1 very big object
 	char* big = malloc(MEMSIZE - HEADERSIZE);
 	free(big);
@@ -111,19 +121,27 @@ int main(int argc, char **argv)
 		errors++;
 	}
 
+	//trying to free unallocated memory
 	char* none;
 	free(none);
 
+	//trying to allocate 0 bytes
 	char* stupid = malloc(0);
 
+	//trying to free from not the start of a chunk
 	char* badFree = malloc(32);
-	free(badFree + 1);
+	free((badFree + 1));
 	free(badFree);
 
+	//trying to free an odd memory address
 	void* odd = (void *)0x28ff43;
 	free(odd);
 
-	free(badFree); //double f ree
+	free(badFree); //double free
+
+	// allocating memory and not freeing it
+	char* memoryLeakTest = malloc(48);
+	char* memoryLeakTest2 = malloc(2);
 
 	printf("%d incorrect bytes\n", errors);
 	

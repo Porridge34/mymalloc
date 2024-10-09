@@ -63,8 +63,8 @@ void thirdTest(){
     for (int i = 0; i < 120; i++){
         if(arr[i] != NULL){
             free(arr[i]);
+        }
     }
-}
 }
 
 void fourthTest(){
@@ -93,8 +93,8 @@ void fifthTest(){
     for (int i = 0; i < 120; i++){
         if(arr[i] != NULL){
             free(arr[i]);
+        }
     }
-}
 }
 
 int main(){
@@ -111,6 +111,9 @@ int main(){
         fifthTest();
     }
     gettimeofday(&tvEnd, NULL);
-    printf("Time Elapsed: %ld microseconds\n", tvEnd.tv_usec - tvStart.tv_usec);
+    if(tvStart.tv_sec==tvEnd.tv_sec)
+        printf("Elapsed Time: %ld microseconds\n",(tvEnd.tv_usec-tvStart.tv_usec));
+    else
+        printf("Elapsed Time: %ld microseconds\n",(tvEnd.tv_sec-tvStart.tv_sec-1)*1000000+(1000000-tvStart.tv_usec)+tvEnd.tv_usec);
     return EXIT_SUCCESS;
 }
