@@ -7,6 +7,8 @@ We've built a variety of tests for our project to test all functions of our prog
 
 We also have some error tests. There is a test that tries to malloc more memory than is available, a test that tries to malloc 0 memory, and tests to try to free pointers that either are null or point to something in the middle of a malloced array. Additionally, we have a test to ensure that we can't double free something or free something with an address that doesn't align with our 8 bytes. All tests do not require any arguments and can be run simply with ./memtest.
 
+*** However, "inappropriate pointers" do cause the program to exit, so testing requires commenting out certain test cases in order ti continue testing. ***
+
 memtest list:
     method 1: Fills memory with objects, stores distinct bytes within them, and checks if the heap stores these bytes accurately. then frees them all. Checks if allocation works correctly without rewriting.
     method 2: Randomly allocates and deallocates within the heap. Tests if malloc and free can work while alternating.

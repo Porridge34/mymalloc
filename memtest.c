@@ -115,6 +115,8 @@ int main(int argc, char **argv)
 	char* big = malloc(MEMSIZE - HEADERSIZE);
 	free(big);
 
+	// ERROR CHECKS (HAVE TO COMMENT OUT CHECK TO TEST NEXT ONE)
+	
 	//should cause errors
 	char* tooBig = malloc(3345435543);
 	if (tooBig != NULL) {

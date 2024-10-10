@@ -147,6 +147,7 @@ void myfree(void *ptr, char *file, int line) {
     int toBeFreed = findPtr(ptr); //set toBeFreed to the metadata start
     if (toBeFreed == -1) {
         fprintf(stderr, "free: Inappropriate pointer (%s.c:%d)\n", file, line);
+        exit(2);
         return;
     }
 
